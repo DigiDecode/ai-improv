@@ -1,3 +1,4 @@
+import 'package:ai_improv/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'side_navigation.dart';
 
@@ -6,16 +7,17 @@ class AppNavigator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const homePage = HomePage();
     return MaterialApp(
       title: 'AI Improv',
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        brightness: Brightness.dark,
+      ),
       initialRoute: '/home',
       routes: {
-        '/home':
-            (context) => SideNavigation(
-              title: 'Home',
-              body: Center(child: Text('Home Content')),
-            ),
+        '/home': (context) => SideNavigation(title: 'Home', body: homePage),
         '/characters':
             (context) => SideNavigation(
               title: 'Characters',

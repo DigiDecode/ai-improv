@@ -16,25 +16,30 @@ class SideNavigation extends StatefulWidget {
 class _SideNavigationState extends State<SideNavigation> {
   @override
   Widget build(BuildContext context) {
-    final navBackgroundColor = Theme.of(context).primaryColor.withOpacity(0.1);
-    // The main content background color - typically white or Theme.of(context).scaffoldBackgroundColor
-    final contentBackgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final navBackgroundColor = Theme.of(context).primaryColorDark;
+    final contentBackgroundColor = Theme.of(context).highlightColor;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
-        // Add background color to the leading icon button
+        title: Row(children: [Text(widget.title)]),
+        // Custom leading widget that spans the full nav width when expanded
         leading: Container(
+          width: _isNavigationExpanded ? 200 : 55,
           color: navBackgroundColor,
-          child: IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {
-              setState(() {
-                _isNavigationExpanded = !_isNavigationExpanded;
-              });
-            },
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () {
+                setState(() {
+                  _isNavigationExpanded = !_isNavigationExpanded;
+                });
+              },
+            ),
           ),
         ),
+        leadingWidth: _isNavigationExpanded ? 200 : 55, // Match nav width
       ),
       body: Row(
         children: [
@@ -44,7 +49,6 @@ class _SideNavigationState extends State<SideNavigation> {
             color: navBackgroundColor,
             child: Column(
               children: [
-                SizedBox(height: 16),
                 _buildNavItem(
                   Icons.home,
                   'Home',
@@ -86,7 +90,7 @@ class _SideNavigationState extends State<SideNavigation> {
     Color contentColor,
   ) {
     final bool isSelected = ModalRoute.of(context)?.settings.name == route;
-    final primaryColor = Theme.of(context).primaryColor;
+    final primaryColor = Theme.of(context).appBarTheme.foregroundColor;
 
     if (_isNavigationExpanded) {
       // Expanded view - standard ListTile with icon and text
@@ -122,7 +126,7 @@ class _SideNavigationState extends State<SideNavigation> {
             }
           },
           child: SizedBox(
-            height: 56, // Standard height for consistency with ListTile
+            height: 48, // Standard height for consistency with ListTile
             child: Center(
               child: Icon(icon, color: isSelected ? primaryColor : null),
             ),
