@@ -2,18 +2,11 @@ import 'package:ai_improv/models/character_model.dart';
 import 'package:ai_improv/models/chat_message.dart';
 import 'package:ai_improv/services/chat_provider_service.dart';
 import 'package:ai_improv/widgets/controllers/chat_widget_controller.dart';
-import 'dart:js_interop'; // Import the modern JS interop package
+import 'dart:js_interop';
 
-// Define JS interop for the speakText function
+// Proper JS interop for the speakText function
 @JS('window.speakText')
-external JSPromise _speakText(String text, [String? voice]);
-
-// Extension method to convert JSPromise to Dart Future
-extension JSPromiseExtension on JSPromise {
-  Future<bool> toDart() {
-    return Future.value(this).then((value) => value as bool);
-  }
-}
+external JSPromise speakText(String text, [String? voice]);
 
 class DialogueService {
   bool _continue = false;
@@ -35,21 +28,29 @@ class DialogueService {
     this._chatWidgetController,
   ) {
     _nextToReply = _firstCharacter;
-    final firstSystemPrompt =
-        'You are assistant and your name is ${_firstCharacter.name}.\n'
-        'You talking to User over dating app, and user\'s name is ${_secondCharacter.name}\n'
+    final situation =
         'The two of you are strangers and have never talked before, IMPORTANT\n'
+        'The two of you are sitting in a cafe on the same table'
+        'Any of you can change the location where you two are, just mention the new location, e.g. say "now we are at new <location>"';
+    'Any of you can change the date or as well, just mention the new date or time, e.g. say "now its  <new day of the week, or new time>"';
+    final firstSystemPrompt =
+        'You are assistant and your name is ${_firstCharacter.name}. \n'
+        'Below is a bit more about you:\n ${_firstCharacter.description} \n\n'
+        'user\'s name is ${_secondCharacter.name} \n'
+        'situation: ${situation}\n\n'
         'talk like people talk over messenging app, act like a real person would do.\n'
-        'Your goal is below:\n'
+        'your primary goal is to keep the conversation going\n'
+        'Your secondary goal is below:\n'
         '${_firstCharacter.goal}\n\n'
         'It is important that your reply is super short 1 sentence max.\n';
     final secondSystemPrompt =
         'You are assistant and your name is ${_secondCharacter.name}.\n'
-        'You talking to User over dating app, and user\'s name is ${_firstCharacter.name}\n'
-        'The two of you are strangers and have never talked before, IMPORTANT\n'
+        'Below is a bit more about you:\n${_secondCharacter.description}\n\n'
+        'user\'s name is ${_firstCharacter.name}\n'
+        'situation: ${situation}\n\n'
         'talk like people talk over messenging app, act like a real person would do.\n'
-        'you are not easy\n'
-        'Your goal is below:\n'
+        'your primary goal is to keep the conversation going\n'
+        'Your secondary goal is below:\n'
         '${_secondCharacter.goal}\n\n'
         'It is important that your reply is super short 1 sentence max.\n';
 
@@ -63,15 +64,27 @@ class DialogueService {
     _secondCharacterMessages.add(
       ChatMessage(role: ChatRole.system, content: secondSystemPrompt),
     );
+
+    _firstCharacterMessages.add(
+      ChatMessage(role: ChatRole.user, content: '...'),
+    );
+
+    _secondCharacterMessages.add(
+      ChatMessage(role: ChatRole.user, content: '...'),
+    );
   }
 
   // Function to speak text using the JavaScript TTS function
-  Future<bool> speakText(String text, [String? voice]) async {
+  Future<void> speakTextWithJS(String text, [String? voice]) async {
     try {
-      return await _speakText(text, voice ?? "af_sky").toDart();
+      final promise = speakText(
+        text.trim().replaceAll('\n', '').replaceAll('*', ''),
+        voice ?? "af_sky",
+      );
+      // Convert JS Promise to Dart Future using proper interop
+      await Future.any([promise.toDart]);
     } catch (e) {
       print('Error calling TTS: $e');
-      return false;
     }
   }
 
@@ -82,7 +95,6 @@ class DialogueService {
     var nextReplyFuture = _generateReply(
       _firstCharacter,
       _firstCharacterMessages,
-      _secondCharacterMessages,
     );
 
     while (_continue) {
@@ -118,11 +130,10 @@ class DialogueService {
         nextReplyFuture = _generateReply(
           _secondCharacter,
           _secondCharacterMessages,
-          _firstCharacterMessages,
         );
 
         // Play audio for current message
-        await speakText(chatReply.messageContent, "am_adam");
+        await speakTextWithJS(chatReply.messageContent, "bm_fable");
       } else {
         _firstCharacterMessages.add(
           ChatMessage(role: ChatRole.user, content: chatReply.messageContent),
@@ -150,11 +161,10 @@ class DialogueService {
         nextReplyFuture = _generateReply(
           _firstCharacter,
           _firstCharacterMessages,
-          _secondCharacterMessages,
         );
 
         // Play audio for current message
-        await speakText(chatReply.messageContent, "af_sky");
+        await speakTextWithJS(chatReply.messageContent, "af_heart");
       }
     }
   }
@@ -163,7 +173,6 @@ class DialogueService {
   Future<ChatCompletion> _generateReply(
     CharacterModel character,
     List<ChatMessage> characterMessages,
-    List<ChatMessage> otherCharacterMessages,
   ) async {
     return ChatProviderService.getChatCompletion(
       chatProvider: character.chatProvider,

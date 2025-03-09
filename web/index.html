@@ -32,21 +32,34 @@
 
   <title>ai_improv</title>
   <link rel="manifest" href="manifest.json">
-  <script type="module">
+  <script type="module" async>
     // import { phonemize as espeakng } from "https://cdn.jsdelivr.net/npm/phonemizer";
     // import { pipeline, StyleTextToSpeech2Model, AutoTokenizer, Tensor, RawAudio } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.4.0';
 
     import { KokoroTTS } from "/kokoro.js/src/kokoro.js";
 
+    async function detectWebGPU() {
+      try {
+        const adapter = await navigator.gpu.requestAdapter();
+        return !!adapter;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    const device = (await detectWebGPU()) ? "webgpu" : "wasm";
+
+    console.log(`device found: ${device}`);
+
     window.tts = await KokoroTTS.from_pretrained(
-      "onnx-community/Kokoro-82M-ONNX",
-      { dtype: "q8" }, // fp32, fp16, q8, q4, q4f16
+      "onnx-community/Kokoro-82M-v1.0-ONNX",
+      { dtype: device === "wasm" ? "q8" : "fp32", device: device }, // fp32, fp16, q8, q4, q4f16
     );
 
-    const text = "Life is like a box of chocolates. You never know what you're gonna get.";
-    const audio = await tts.generate(text,
-      { voice: "af_sky" }, // See `tts.list_voices()`
-    );
+    // const text = "Life is like a box of chocolates. You never know what you're gonna get.";
+    // const audio = await tts.generate(text,
+    //   { voice: "af_sky" }, // See `tts.list_voices()`
+    // );
 
     // Initialize audio context
     window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
