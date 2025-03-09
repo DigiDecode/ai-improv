@@ -39,17 +39,28 @@ class _ChatWidgetState extends State<ChatWidget> {
           mainAxisAlignment:
               message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
           children: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color:
-                    message.isMe
-                        ? const Color.fromARGB(255, 16, 84, 141)
-                        : const Color.fromARGB(255, 137, 73, 73),
-                borderRadius: BorderRadius.circular(12),
+            Flexible(
+              // Wrap in Flexible to allow proper constraints
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                padding: const EdgeInsets.all(12),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.8,
+                ),
+                decoration: BoxDecoration(
+                  color:
+                      message.isMe
+                          ? const Color.fromARGB(255, 16, 84, 141)
+                          : const Color.fromARGB(255, 137, 73, 73),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  message.text,
+                  softWrap: true,
+                  style: const TextStyle(color: Colors.white),
+                  overflow: TextOverflow.clip, // Changed from visible to clip
+                ),
               ),
-              child: Text(message.text),
             ),
           ],
         );

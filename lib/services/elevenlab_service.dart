@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'package:ai_improv/utils/constants.dart';
 import 'package:http/http.dart' as http;
 
 import '../utils/api_exception.dart';
 
 class ElevenLabsService {
   final String apiKey;
-  final String baseUrl = 'https://api.elevenlabs.io/v1';
+  final String baseUrl = Constants.elevenLabsBaseUrl;
 
   ElevenLabsService({required this.apiKey});
 

@@ -18,8 +18,6 @@ class ChatProviderService {
   static const Map<String, String> _headers = {
     'Content-Type': 'application/json',
   };
-  static const String defaultModel =
-      'mistralai/mistral-small-24b-instruct-2501:free';
 
   ChatProviderService();
 
@@ -45,12 +43,12 @@ class ChatProviderService {
   static Future<ChatCompletion> getChatCompletion({
     required ChatProviderModel chatProvider,
     required List<ChatMessage> messages,
-    String? model,
+    required String model,
     double temperature = 0.6,
     int maxTokens = 2000,
   }) async {
     final payload = jsonEncode({
-      'model': model ?? defaultModel,
+      'model': model,
       'messages': messages.map((msg) => msg.toJson()).toList(),
       'temperature': temperature,
       'max_tokens': maxTokens,
@@ -68,7 +66,7 @@ class ChatProviderService {
         response.statusCode,
       );
     }
-
+    print(response.body);
     return ChatCompletion.fromJson(jsonDecode(response.body));
   }
 }
