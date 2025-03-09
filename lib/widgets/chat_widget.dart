@@ -11,6 +11,8 @@ class ChatWidget extends StatefulWidget {
 }
 
 class _ChatWidgetState extends State<ChatWidget> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -23,14 +25,28 @@ class _ChatWidgetState extends State<ChatWidget> {
   @override
   void dispose() {
     widget.controller.removeListener(_handleChange);
+    _scrollController.dispose(); // Dispose of the ScrollController
     super.dispose();
   }
 
-  void _handleChange() => setState(() {});
+  void _handleChange() {
+    setState(() {});
+    // Scroll to bottom after the state is updated and the layout is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      controller: _scrollController, // Add the ScrollController here
       padding: const EdgeInsets.all(8),
       itemCount: widget.controller.messages.length,
       itemBuilder: (context, index) {
@@ -40,7 +56,6 @@ class _ChatWidgetState extends State<ChatWidget> {
               message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
           children: [
             Flexible(
-              // Wrap in Flexible to allow proper constraints
               child: Container(
                 margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                 padding: const EdgeInsets.all(12),
@@ -58,7 +73,7 @@ class _ChatWidgetState extends State<ChatWidget> {
                   message.text,
                   softWrap: true,
                   style: const TextStyle(color: Colors.white),
-                  overflow: TextOverflow.clip, // Changed from visible to clip
+                  overflow: TextOverflow.clip,
                 ),
               ),
             ),

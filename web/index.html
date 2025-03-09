@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -27,12 +28,79 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <title>ai_improv</title>
   <link rel="manifest" href="manifest.json">
+  <script type="module">
+    // import { phonemize as espeakng } from "https://cdn.jsdelivr.net/npm/phonemizer";
+    // import { pipeline, StyleTextToSpeech2Model, AutoTokenizer, Tensor, RawAudio } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.4.0';
+
+    import { KokoroTTS } from "/kokoro.js/src/kokoro.js";
+
+    window.tts = await KokoroTTS.from_pretrained(
+      "onnx-community/Kokoro-82M-ONNX",
+      { dtype: "q8" }, // fp32, fp16, q8, q4, q4f16
+    );
+
+    const text = "Life is like a box of chocolates. You never know what you're gonna get.";
+    const audio = await tts.generate(text,
+      { voice: "af_sky" }, // See `tts.list_voices()`
+    );
+
+    // Initialize audio context
+    window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Expose function to Flutter
+    window.speakText = async (text, voice = "af_sky") => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const audioData = await window.tts.generate(text, { voice: voice });
+          console.log("Audio object:", audioData);
+
+          // Create an AudioBuffer with the audio data
+          const audioBuffer = window.audioContext.createBuffer(
+            1, // Mono audio (1 channel)
+            audioData.audio.length,
+            audioData.sampling_rate
+          );
+
+          // Copy the Float32Array data to the AudioBuffer
+          const channelData = audioBuffer.getChannelData(0);
+          channelData.set(audioData.audio);
+
+          // Create a source node and play the audio
+          const source = window.audioContext.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(window.audioContext.destination);
+
+          // Add an event listener to detect when audio playback ends
+          source.onended = () => {
+            console.log("Audio playback completed");
+            resolve(true);
+          };
+
+          // Handle any errors
+          source.onerror = (error) => {
+            console.error("Audio playback error:", error);
+            reject(error);
+          };
+
+          source.start();
+        } catch (error) {
+          console.error("Error generating or playing audio:", error);
+          reject(error);
+        }
+      });
+    };
+
+    // await window.speakText(text);
+
+  </script>
 </head>
+
 <body>
   <script src="flutter_bootstrap.js" async></script>
 </body>
+
 </html>

@@ -5,7 +5,6 @@ class Constants {
 
   static final openRouterBaseUrl = "https://openrouter.ai/api";
   static final openRouterApiKey = "";
-  static final defaultOpenRouterModel =
-      "sophosympatheia/rogue-rose-103b-v0.2:free";
+  static final defaultOpenRouterModel = "deepseek/deepseek-chat";
   // 'mistralai/mistral-small-24b-instruct-2501:free';
 }

@@ -40,6 +40,7 @@ class ChatProviderService {
         .toList();
   }
 
+  // In lib/services/chat_provider_service.dart
   static Future<ChatCompletion> getChatCompletion({
     required ChatProviderModel chatProvider,
     required List<ChatMessage> messages,
@@ -66,8 +67,12 @@ class ChatProviderService {
         response.statusCode,
       );
     }
-    print(response.body);
-    return ChatCompletion.fromJson(jsonDecode(response.body));
+
+    // Ensure proper UTF-8 decoding of the response body
+    final decodedBody = utf8.decode(response.bodyBytes);
+    print(decodedBody);
+
+    return ChatCompletion.fromJson(jsonDecode(decodedBody));
   }
 }
 

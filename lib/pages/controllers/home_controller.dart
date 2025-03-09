@@ -43,7 +43,7 @@ class HomeController {
     final firstCharacter = CharacterModel(
       name: "Roger",
       description: "Alex is a sky computer nerd",
-      goal: "To talk the User into agreeing to a romantic date",
+      goal: "To smooth talk the User into becoming your girlfriend",
       voiceProvider: voiceProvider,
       voiceModelId: Constants.defaultElevenLabsModel,
       voiceId: "CwhRBWXzGAHq8TQ4Fs17",
@@ -54,7 +54,7 @@ class HomeController {
     final secondCharacter = CharacterModel(
       name: "Aria",
       description: "Aria is a writer",
-      goal: "Just be yourself",
+      goal: "you are an introvert",
       voiceProvider: voiceProvider,
       voiceModelId: Constants.defaultElevenLabsModel,
       voiceId: "9BWtsMINqrJLrRacOk9x",
