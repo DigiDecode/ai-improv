@@ -62,12 +62,6 @@ class _SideNavigationState extends State<SideNavigation> {
                   contentBackgroundColor,
                 ),
                 _buildNavItem(
-                  Icons.movie_rounded,
-                  'Situations',
-                  '/situations',
-                  contentBackgroundColor,
-                ),
-                _buildNavItem(
                   Icons.chat,
                   'Chat Proviers',
                   '/chatproviders',

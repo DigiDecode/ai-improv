@@ -1,12 +1,18 @@
+// lib/widgets/select_character_widget.dart
 import 'package:ai_improv/models/character_model.dart';
 import 'package:ai_improv/widgets/controllers/select_character_widget_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SelectCharacterWidget extends StatefulWidget {
+  final CharacterModel? initialCharacter;
   final void Function(CharacterModel)? onCharacterSelected;
 
-  const SelectCharacterWidget({super.key, this.onCharacterSelected});
+  const SelectCharacterWidget({
+    super.key,
+    this.initialCharacter,
+    this.onCharacterSelected,
+  });
 
   @override
   State<SelectCharacterWidget> createState() => _SelectCharacterWidgetState();
@@ -24,6 +30,10 @@ class _SelectCharacterWidgetState extends State<SelectCharacterWidget> {
 
   Future<void> _loadCharacters() async {
     await _controller.initialize();
+    if (widget.initialCharacter != null) {
+      // Restore the selection if an initial character is provided.
+      _controller.selectCharacterById(widget.initialCharacter!.id);
+    }
   }
 
   @override

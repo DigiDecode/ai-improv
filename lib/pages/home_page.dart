@@ -1,8 +1,9 @@
-import 'package:ai_improv/models/character_model.dart';
-import 'package:ai_improv/pages/controllers/home_page_controller.dart';
+// lib/pages/home_page.dart
+import 'package:ai_improv/pages/providers/home_state_provider.dart';
 import 'package:ai_improv/widgets/chat_widget.dart';
 import 'package:ai_improv/widgets/select_character_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,28 +13,32 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final HomePageController _controller;
-  bool _isStarted = false; // Added state variable for toggle
-  CharacterModel? _firstCharacter;
-  CharacterModel? _secondCharacter;
   final TextEditingController _scenarioController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    _controller = HomePageController();
-    _controller.initializeVoice();
-  }
-
-  @override
   void dispose() {
-    _controller.dispose();
     _scenarioController.dispose();
     super.dispose();
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize the controller with the scenario from the provider
+    final homeState = Provider.of<HomeStateProvider>(context, listen: false);
+    _scenarioController.text = homeState.scenarioText;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Get the persisted state details from the provider.
+    final homeState = Provider.of<HomeStateProvider>(context);
+
+    // Keep the text controller in sync with the provider
+    if (_scenarioController.text != homeState.scenarioText) {
+      _scenarioController.text = homeState.scenarioText;
+    }
+
     return Column(
       children: [
         // Top row (70% of screen)
@@ -58,20 +63,21 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 16),
                       SelectCharacterWidget(
+                        // Pass the initially selected first character from provider.
+                        initialCharacter: homeState.firstCharacter,
+                        // When a character is selected, update the state via the provider.
                         onCharacterSelected: (character) {
-                          setState(() {
-                            _firstCharacter = character;
-                          });
-                          if (_firstCharacter != null) {
-                            _controller.updateFirstCharacter(_firstCharacter!);
-                          }
+                          Provider.of<HomeStateProvider>(
+                            context,
+                            listen: false,
+                          ).setFirstCharacter(character);
                         },
                       ),
                     ],
                   ),
                 ),
               ),
-              // Second column (50%)
+              // Second column (50%) - Chat area
               Expanded(
                 flex: 2,
                 child: Column(
@@ -82,14 +88,16 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.only(right: 16.0, top: 16.0),
                         child: ElevatedButton(
                           onPressed: () {
-                            _controller.resetChat();
+                            homeState.resetChat();
                           },
                           child: const Text('Reset chat'),
                         ),
                       ),
                     ),
                     Expanded(
-                      child: ChatWidget(controller: _controller.chatController),
+                      child: ChatWidget(
+                        controller: homeState.controller.chatController,
+                      ),
                     ),
                   ],
                 ),
@@ -111,15 +119,13 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 16),
                       SelectCharacterWidget(
+                        // Pass the initially selected second character from provider.
+                        initialCharacter: homeState.secondCharacter,
                         onCharacterSelected: (character) {
-                          setState(() {
-                            _secondCharacter = character;
-                          });
-                          if (_secondCharacter != null) {
-                            _controller.updateSecondCharacter(
-                              _secondCharacter!,
-                            );
-                          }
+                          Provider.of<HomeStateProvider>(
+                            context,
+                            listen: false,
+                          ).setSecondCharacter(character);
                         },
                       ),
                     ],
@@ -134,7 +140,7 @@ class _HomePageState extends State<HomePage> {
           flex: 3,
           child: Row(
             children: [
-              // First column (75%) - Updated with TextField
+              // First column (75%) - Scenario Description
               Expanded(
                 flex: 3,
                 child: Container(
@@ -157,7 +163,7 @@ class _HomePageState extends State<HomePage> {
                           expands: true,
                           decoration: const InputDecoration(
                             hintText: 'Enter scenario details here...',
-                            border: OutlineInputBorder(),
+                            // border: OutlineInputBorder(),
                             filled: true,
                             fillColor: Color.fromARGB(10, 255, 255, 255),
                           ),
@@ -167,47 +173,37 @@ class _HomePageState extends State<HomePage> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: ElevatedButton(
-                          onPressed:
-                              () => {
-                                _controller.setScenario(
-                                  _scenarioController.text,
-                                ),
-                              },
-                          child: Text("Apply Scenario"),
+                          onPressed: () {
+                            homeState.setScenario(_scenarioController.text);
+                          },
+                          child: const Text('Apply Scenario'),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              // Second column (25%) - Modified section
+              // Second column (25%) - Start/Stop Dialogue
               Expanded(
                 flex: 1,
                 child: Container(
-                  child: Center(
-                    child: ElevatedButton(
-                      onPressed:
-                          (_firstCharacter != null && _secondCharacter != null)
-                              ? () {
-                                setState(() {
-                                  _isStarted = !_isStarted;
-                                });
-                                // Add controller interaction here when ready:
-                                if (_isStarted) {
-                                  _controller.dialogueService?.start();
-                                } else {
-                                  _controller.dialogueService?.stop();
-                                }
-                              }
-                              : null,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
+                  alignment: Alignment.center,
+                  child: ElevatedButton(
+                    // Enable the button only if both characters are selected.
+                    onPressed:
+                        (homeState.firstCharacter != null &&
+                                homeState.secondCharacter != null)
+                            ? () {
+                              homeState.toggleStartStop();
+                            }
+                            : null,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
                       ),
-                      child: Text(_isStarted ? 'Stop' : 'Start'),
                     ),
+                    child: Text(homeState.isStarted ? 'Stop' : 'Start'),
                   ),
                 ),
               ),

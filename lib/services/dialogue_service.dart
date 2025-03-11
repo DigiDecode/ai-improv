@@ -41,25 +41,7 @@ class DialogueService {
     updateSystemPrompts();
   }
 
-  DialogueService(this._chatWidgetController) {
-    // _nextToReply = _firstCharacter;
-
-    // _firstCharacterMessages.add(
-    //   ChatMessage(role: ChatRole.system, content: firstSystemPrompt),
-    // );
-
-    // _secondCharacterMessages.add(
-    //   ChatMessage(role: ChatRole.system, content: secondSystemPrompt),
-    // );
-
-    _firstCharacterMessages.add(
-      ChatMessage(role: ChatRole.user, content: '...'),
-    );
-
-    _secondCharacterMessages.add(
-      ChatMessage(role: ChatRole.user, content: '...'),
-    );
-  }
+  DialogueService(this._chatWidgetController) {}
 
   String? canStart() {
     if (_firstCharacter == null) {
@@ -74,6 +56,7 @@ class DialogueService {
   void resetChat() {
     _firstCharacterMessages.clear();
     _secondCharacterMessages.clear();
+    updateSystemPrompts();
   }
 
   void updateSystemPrompts() {
@@ -81,11 +64,11 @@ class DialogueService {
     //   return;
     // }
     firstSystemPrompt =
-        'You are assistant and your name is ${_firstCharacter?.name}. \n'
+        'Assistant your name is ${_firstCharacter?.name}. \n'
         'Below is a bit more about you:\n'
         'You are a ${_firstCharacter?.gender} and your age is ${_firstCharacter?.age}\n'
         '${_firstCharacter?.description} \n\n'
-        'You are talking to User, user\'s name is ${_secondCharacter?.name} \n'
+        'You are talking to ${_secondCharacter?.name} \n'
         'Talk like a real person would do.\n'
         'It is important that your reply is super short one sentence max.\n\n'
         'Detail about this chat:\n $_scenario\n\n'
@@ -93,11 +76,11 @@ class DialogueService {
         '${_firstCharacter?.goal}\n\n';
 
     secondSystemPrompt =
-        'You are assistant and your name is ${_secondCharacter?.name}.\n'
+        'Assistant your name is ${_secondCharacter?.name}.\n'
         'Below is a bit more about you:\n'
         'You are a ${_secondCharacter?.gender} and your age is ${_secondCharacter?.age}\n'
         '${_secondCharacter?.description}\n\n'
-        'You are talking to User, User\'s name is ${_firstCharacter?.name}\n'
+        'You are talking to ${_firstCharacter?.name}\n'
         'Talk like a real person would do.\n'
         'It is important that your reply is super short one sentence max.\n\n'
         'Detail about this chat:\n $_scenario\n\n'
@@ -106,6 +89,18 @@ class DialogueService {
 
     print(firstSystemPrompt);
     print(secondSystemPrompt);
+
+    if (_firstCharacterMessages.isEmpty) {
+      _firstCharacterMessages.add(
+        ChatMessage(role: ChatRole.system, content: firstSystemPrompt),
+      );
+    }
+
+    if (_secondCharacterMessages.isEmpty) {
+      _secondCharacterMessages.add(
+        ChatMessage(role: ChatRole.system, content: secondSystemPrompt),
+      );
+    }
   }
 
   // Function to speak text using the JavaScript TTS function
@@ -139,19 +134,20 @@ class DialogueService {
     _continue = true;
 
     // Generate initial reply from first character
-    _nextToReply = _firstCharacter;
-    var nextReplyFuture = _generateReply(
-      _firstCharacter!,
-      appendSystemMessage(_firstCharacterMessages, firstSystemPrompt),
-    );
+    _nextToReply ??= _firstCharacter;
 
     while (_continue) {
       // Await the reply that's already being generated
-      final chatReply = await nextReplyFuture;
+
       final currentCharacter = _nextToReply!;
 
       // Update message lists based on which character just replied
       if (currentCharacter == _firstCharacter) {
+        final chatReply = await _generateReply(
+          _firstCharacter!,
+          _firstCharacterMessages,
+        );
+
         _firstCharacterMessages.add(
           ChatMessage(
             role: ChatRole.assistant,
@@ -165,6 +161,7 @@ class DialogueService {
 
         _chatWidgetController.addMessage(
           ChatWidgetMessage(
+            name: currentCharacter.name,
             text: chatReply.messageContent,
             isMe: false,
             timestamp: DateTime.now(),
@@ -175,17 +172,22 @@ class DialogueService {
         _nextToReply = _secondCharacter;
 
         // Start generating next reply concurrently with TTS
-        nextReplyFuture = _generateReply(
-          _secondCharacter!,
-          appendSystemMessage(_secondCharacterMessages, secondSystemPrompt),
-        );
 
         // Play audio for current message
-        await speakTextWithJS(
-          chatReply.messageContent,
-          currentCharacter.voiceProvider.voiceId,
-        );
+        try {
+          await speakTextWithJS(
+            chatReply.messageContent,
+            currentCharacter.voiceProvider.voiceId,
+          );
+        } catch (ex) {
+          print(ex);
+        }
       } else {
+        final chatReply = await _generateReply(
+          _secondCharacter!,
+          _secondCharacterMessages,
+        );
+
         _firstCharacterMessages.add(
           ChatMessage(role: ChatRole.user, content: chatReply.messageContent),
         );
@@ -199,6 +201,7 @@ class DialogueService {
 
         _chatWidgetController.addMessage(
           ChatWidgetMessage(
+            name: currentCharacter.name,
             text: chatReply.messageContent,
             isMe: true,
             timestamp: DateTime.now(),
@@ -209,16 +212,20 @@ class DialogueService {
         _nextToReply = _firstCharacter;
 
         // Start generating next reply concurrently with TTS
-        nextReplyFuture = _generateReply(
-          _firstCharacter!,
-          appendSystemMessage(_firstCharacterMessages, firstSystemPrompt),
-        );
+        // nextReplyFuture = _generateReply(
+        //   _firstCharacter!,
+        //   _firstCharacterMessages,
+        // );
 
         // Play audio for current message
-        await speakTextWithJS(
-          chatReply.messageContent,
-          currentCharacter.voiceProvider.voiceId,
-        );
+        try {
+          await speakTextWithJS(
+            chatReply.messageContent,
+            currentCharacter.voiceProvider.voiceId,
+          );
+        } catch (ex) {
+          print(ex);
+        }
       }
     }
   }
@@ -228,6 +235,11 @@ class DialogueService {
     CharacterModel character,
     List<ChatMessage> characterMessages,
   ) async {
+    // characterMessages.where((cm) => cm.role == ChatRole.system).forEach((cm) {
+    //   print("${character.name} ${cm.content}");
+    //   ;
+    // });
+
     return ChatProviderService.getChatCompletion(
       chatProvider: character.chatProvider,
       messages: characterMessages,

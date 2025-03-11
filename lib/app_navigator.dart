@@ -24,11 +24,6 @@ class AppNavigator extends StatelessWidget {
         '/characters':
             (context) =>
                 SideNavigation(title: 'Characters', body: CharactersPage()),
-        '/situations':
-            (context) => SideNavigation(
-              title: 'Situations',
-              body: Center(child: Text('Situations Content')),
-            ),
         '/chatproviders':
             (context) => SideNavigation(
               title: 'Chat Providers',

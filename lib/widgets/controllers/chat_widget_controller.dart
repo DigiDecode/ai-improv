@@ -11,27 +11,6 @@ class ChatWidgetController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void initializeDummyData() {
-    // _messages.addAll([
-    //   ChatWidgetMessage(
-    //     text: 'Hello! How are you?',
-    //     isMe: false,
-    //     timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-    //   ),
-    //   ChatWidgetMessage(
-    //     text: 'I\'m good, thanks!',
-    //     isMe: true,
-    //     timestamp: DateTime.now().subtract(const Duration(minutes: 4)),
-    //   ),
-    //   ChatWidgetMessage(
-    //     text: 'What are you up to?',
-    //     isMe: false,
-    //     timestamp: DateTime.now().subtract(const Duration(minutes: 3)),
-    //   ),
-    // ]);
-    notifyListeners();
-  }
-
   void resetChat() {
     _messages.clear();
     notifyListeners();
