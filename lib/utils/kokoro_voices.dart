@@ -1,0 +1,253 @@
+import 'package:ai_improv/utils/kokoro_voice.dart';
+
+class KokoroVoices {
+  static final List<KokoroVoice> voices = [
+    const KokoroVoice(
+      voiceId: 'af_heart',
+      name: 'Heart',
+      language: 'en-us',
+      gender: 'Female',
+      traits: '❤️',
+      targetQuality: 'A',
+      overallGrade: 'A',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_alloy',
+      name: 'Alloy',
+      language: 'en-us',
+      gender: 'Female',
+      targetQuality: 'B',
+      overallGrade: 'C',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_aoede',
+      name: 'Aoede',
+      language: 'en-us',
+      gender: 'Female',
+      targetQuality: 'B',
+      overallGrade: 'C+',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_bella',
+      name: 'Bella',
+      language: 'en-us',
+      gender: 'Female',
+      traits: '🔥',
+      targetQuality: 'A',
+      overallGrade: 'A-',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_jessica',
+      name: 'Jessica',
+      language: 'en-us',
+      gender: 'Female',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_kore',
+      name: 'Kore',
+      language: 'en-us',
+      gender: 'Female',
+      targetQuality: 'B',
+      overallGrade: 'C+',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_nicole',
+      name: 'Nicole',
+      language: 'en-us',
+      gender: 'Female',
+      traits: '🎧',
+      targetQuality: 'B',
+      overallGrade: 'B-',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_nova',
+      name: 'Nova',
+      language: 'en-us',
+      gender: 'Female',
+      targetQuality: 'B',
+      overallGrade: 'C',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_river',
+      name: 'River',
+      language: 'en-us',
+      gender: 'Female',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_sarah',
+      name: 'Sarah',
+      language: 'en-us',
+      gender: 'Female',
+      targetQuality: 'B',
+      overallGrade: 'C+',
+    ),
+    const KokoroVoice(
+      voiceId: 'af_sky',
+      name: 'Sky',
+      language: 'en-us',
+      gender: 'Female',
+      targetQuality: 'B',
+      overallGrade: 'C-',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_adam',
+      name: 'Adam',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'D',
+      overallGrade: 'F+',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_echo',
+      name: 'Echo',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_eric',
+      name: 'Eric',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_fenrir',
+      name: 'Fenrir',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'B',
+      overallGrade: 'C+',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_liam',
+      name: 'Liam',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_michael',
+      name: 'Michael',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'B',
+      overallGrade: 'C+',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_onyx',
+      name: 'Onyx',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_puck',
+      name: 'Puck',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'B',
+      overallGrade: 'C+',
+    ),
+    const KokoroVoice(
+      voiceId: 'am_santa',
+      name: 'Santa',
+      language: 'en-us',
+      gender: 'Male',
+      targetQuality: 'C',
+      overallGrade: 'D-',
+    ),
+    const KokoroVoice(
+      voiceId: 'bf_emma',
+      name: 'Emma',
+      language: 'en-gb',
+      gender: 'Female',
+      traits: '🚺',
+      targetQuality: 'B',
+      overallGrade: 'B-',
+    ),
+    const KokoroVoice(
+      voiceId: 'bf_isabella',
+      name: 'Isabella',
+      language: 'en-gb',
+      gender: 'Female',
+      targetQuality: 'B',
+      overallGrade: 'C',
+    ),
+    const KokoroVoice(
+      voiceId: 'bm_george',
+      name: 'George',
+      language: 'en-gb',
+      gender: 'Male',
+      targetQuality: 'B',
+      overallGrade: 'C',
+    ),
+    const KokoroVoice(
+      voiceId: 'bm_lewis',
+      name: 'Lewis',
+      language: 'en-gb',
+      gender: 'Male',
+      targetQuality: 'C',
+      overallGrade: 'D+',
+    ),
+    const KokoroVoice(
+      voiceId: 'bf_alice',
+      name: 'Alice',
+      language: 'en-gb',
+      gender: 'Female',
+      traits: '🚺',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'bf_lily',
+      name: 'Lily',
+      language: 'en-gb',
+      gender: 'Female',
+      traits: '🚺',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'bm_daniel',
+      name: 'Daniel',
+      language: 'en-gb',
+      gender: 'Male',
+      traits: '🚹',
+      targetQuality: 'C',
+      overallGrade: 'D',
+    ),
+    const KokoroVoice(
+      voiceId: 'bm_fable',
+      name: 'Fable',
+      language: 'en-gb',
+      gender: 'Male',
+      traits: '🚹',
+      targetQuality: 'B',
+      overallGrade: 'C',
+    ),
+  ];
+
+  // Find a voice by ID
+  static KokoroVoice? findVoiceById(String id) {
+    return voices.firstWhere((voice) => voice.voiceId == id);
+  }
+
+  // Get voices by language
+  static List<KokoroVoice> getVoicesByLanguage(String language) {
+    return voices.where((voice) => voice.language == language).toList();
+  }
+
+  // Get voices by gender
+  static List<KokoroVoice> getVoicesByGender(String gender) {
+    return voices.where((voice) => voice.gender == gender).toList();
+  }
+}

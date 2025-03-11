@@ -1,4 +1,7 @@
+import 'package:ai_improv/pages/characters_page.dart';
+import 'package:ai_improv/pages/chat_providers_page.dart';
 import 'package:ai_improv/pages/home_page.dart';
+import 'package:ai_improv/pages/tts_providers_page.dart';
 import 'package:flutter/material.dart';
 import 'side_navigation.dart';
 
@@ -19,19 +22,22 @@ class AppNavigator extends StatelessWidget {
       routes: {
         '/home': (context) => SideNavigation(title: 'Home', body: homePage),
         '/characters':
-            (context) => SideNavigation(
-              title: 'Characters',
-              body: Center(child: Text('Characters Content')),
-            ),
+            (context) =>
+                SideNavigation(title: 'Characters', body: CharactersPage()),
         '/situations':
             (context) => SideNavigation(
               title: 'Situations',
               body: Center(child: Text('Situations Content')),
             ),
-        '/settings':
+        '/chatproviders':
             (context) => SideNavigation(
-              title: 'Settings',
-              body: Center(child: Text('Settings Content')),
+              title: 'Chat Providers',
+              body: ChatProvidersPage(),
+            ),
+        '/ttsproviders':
+            (context) => SideNavigation(
+              title: 'TTS Providers',
+              body: TTSProvidersPage(),
             ),
       },
     );

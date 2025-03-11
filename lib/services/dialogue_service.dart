@@ -10,68 +10,102 @@ external JSPromise speakText(String text, [String? voice]);
 
 class DialogueService {
   bool _continue = false;
-  CharacterModel _firstCharacter;
-  final _firstCharacterMessages = List<ChatMessage>.empty(growable: true);
 
-  CharacterModel _secondCharacter;
+  CharacterModel? _nextToReply;
+
+  CharacterModel? _firstCharacter;
+  set firstCharacter(CharacterModel character) {
+    _firstCharacter = character;
+    _nextToReply ??= character;
+    updateSystemPrompts();
+  }
+
+  CharacterModel? _secondCharacter;
+  set secondCharacter(CharacterModel character) {
+    _secondCharacter = character;
+    updateSystemPrompts();
+  }
+
+  final _firstCharacterMessages = List<ChatMessage>.empty(growable: true);
   final _secondCharacterMessages = List<ChatMessage>.empty(growable: true);
 
   final ChatWidgetController _chatWidgetController;
 
-  CharacterModel? _nextToReply;
-
   ChatProviderService chatProviderService = ChatProviderService();
 
-  DialogueService(
-    this._firstCharacter,
-    this._secondCharacter,
-    this._chatWidgetController,
-  ) {
-    _nextToReply = _firstCharacter;
-    final situation =
-        'The two of you are strangers and have never talked before, IMPORTANT\n'
-        'The two of you are sitting in a cafe on the same table'
-        'Any of you can change the location where you two are, just mention the new location, e.g. say "now we are at new <location>"';
-    'Any of you can change the date or as well, just mention the new date or time, e.g. say "now its  <new day of the week, or new time>"';
-    final firstSystemPrompt =
-        'You are assistant and your name is ${_firstCharacter.name}. \n'
-        'Below is a bit more about you:\n ${_firstCharacter.description} \n\n'
-        'user\'s name is ${_secondCharacter.name} \n'
-        'situation: ${situation}\n\n'
-        'talk like people talk over messenging app, act like a real person would do.\n'
-        'your primary goal is to keep the conversation going\n'
-        'Your secondary goal is below:\n'
-        '${_firstCharacter.goal}\n\n'
-        'It is important that your reply is super short 1 sentence max.\n';
-    final secondSystemPrompt =
-        'You are assistant and your name is ${_secondCharacter.name}.\n'
-        'Below is a bit more about you:\n${_secondCharacter.description}\n\n'
-        'user\'s name is ${_firstCharacter.name}\n'
-        'situation: ${situation}\n\n'
-        'talk like people talk over messenging app, act like a real person would do.\n'
-        'your primary goal is to keep the conversation going\n'
-        'Your secondary goal is below:\n'
-        '${_secondCharacter.goal}\n\n'
-        'It is important that your reply is super short 1 sentence max.\n';
+  String firstSystemPrompt = '';
+  String secondSystemPrompt = '';
+  String _scenario = '';
+  set scenario(String scenario) {
+    _scenario = scenario;
+    updateSystemPrompts();
+  }
+
+  DialogueService(this._chatWidgetController) {
+    // _nextToReply = _firstCharacter;
+
+    // _firstCharacterMessages.add(
+    //   ChatMessage(role: ChatRole.system, content: firstSystemPrompt),
+    // );
+
+    // _secondCharacterMessages.add(
+    //   ChatMessage(role: ChatRole.system, content: secondSystemPrompt),
+    // );
+
+    _firstCharacterMessages.add(
+      ChatMessage(role: ChatRole.user, content: '...'),
+    );
+
+    _secondCharacterMessages.add(
+      ChatMessage(role: ChatRole.user, content: '...'),
+    );
+  }
+
+  String? canStart() {
+    if (_firstCharacter == null) {
+      return "Select first character";
+    } else if (_secondCharacter == null) {
+      return "Select second character";
+    }
+
+    return null;
+  }
+
+  void resetChat() {
+    _firstCharacterMessages.clear();
+    _secondCharacterMessages.clear();
+  }
+
+  void updateSystemPrompts() {
+    // if (canStart() == null) {
+    //   return;
+    // }
+    firstSystemPrompt =
+        'You are assistant and your name is ${_firstCharacter?.name}. \n'
+        'Below is a bit more about you:\n'
+        'You are a ${_firstCharacter?.gender} and your age is ${_firstCharacter?.age}\n'
+        '${_firstCharacter?.description} \n\n'
+        'You are talking to User, user\'s name is ${_secondCharacter?.name} \n'
+        'Talk like a real person would do.\n'
+        'It is important that your reply is super short one sentence max.\n\n'
+        'Detail about this chat:\n $_scenario\n\n'
+        'Things that you want to do are below:\n\n'
+        '${_firstCharacter?.goal}\n\n';
+
+    secondSystemPrompt =
+        'You are assistant and your name is ${_secondCharacter?.name}.\n'
+        'Below is a bit more about you:\n'
+        'You are a ${_secondCharacter?.gender} and your age is ${_secondCharacter?.age}\n'
+        '${_secondCharacter?.description}\n\n'
+        'You are talking to User, User\'s name is ${_firstCharacter?.name}\n'
+        'Talk like a real person would do.\n'
+        'It is important that your reply is super short one sentence max.\n\n'
+        'Detail about this chat:\n $_scenario\n\n'
+        'Things that you want to do are below:\n\n'
+        '${_secondCharacter?.goal}\n\n';
 
     print(firstSystemPrompt);
     print(secondSystemPrompt);
-
-    _firstCharacterMessages.add(
-      ChatMessage(role: ChatRole.system, content: firstSystemPrompt),
-    );
-
-    _secondCharacterMessages.add(
-      ChatMessage(role: ChatRole.system, content: secondSystemPrompt),
-    );
-
-    _firstCharacterMessages.add(
-      ChatMessage(role: ChatRole.user, content: '...'),
-    );
-
-    _secondCharacterMessages.add(
-      ChatMessage(role: ChatRole.user, content: '...'),
-    );
   }
 
   // Function to speak text using the JavaScript TTS function
@@ -88,13 +122,27 @@ class DialogueService {
     }
   }
 
+  List<ChatMessage> appendSystemMessage(
+    List<ChatMessage> messages,
+    String systemMessage,
+  ) {
+    final temp = List<ChatMessage>.from(messages, growable: true);
+    temp.add(ChatMessage(role: ChatRole.system, content: systemMessage));
+    return temp;
+  }
+
   void start() async {
+    if (canStart() != null) {
+      throw Exception("select characters");
+    }
+
     _continue = true;
 
     // Generate initial reply from first character
+    _nextToReply = _firstCharacter;
     var nextReplyFuture = _generateReply(
-      _firstCharacter,
-      _firstCharacterMessages,
+      _firstCharacter!,
+      appendSystemMessage(_firstCharacterMessages, firstSystemPrompt),
     );
 
     while (_continue) {
@@ -118,7 +166,7 @@ class DialogueService {
         _chatWidgetController.addMessage(
           ChatWidgetMessage(
             text: chatReply.messageContent,
-            isMe: true,
+            isMe: false,
             timestamp: DateTime.now(),
           ),
         );
@@ -128,12 +176,15 @@ class DialogueService {
 
         // Start generating next reply concurrently with TTS
         nextReplyFuture = _generateReply(
-          _secondCharacter,
-          _secondCharacterMessages,
+          _secondCharacter!,
+          appendSystemMessage(_secondCharacterMessages, secondSystemPrompt),
         );
 
         // Play audio for current message
-        await speakTextWithJS(chatReply.messageContent, "bm_fable");
+        await speakTextWithJS(
+          chatReply.messageContent,
+          currentCharacter.voiceProvider.voiceId,
+        );
       } else {
         _firstCharacterMessages.add(
           ChatMessage(role: ChatRole.user, content: chatReply.messageContent),
@@ -149,7 +200,7 @@ class DialogueService {
         _chatWidgetController.addMessage(
           ChatWidgetMessage(
             text: chatReply.messageContent,
-            isMe: false,
+            isMe: true,
             timestamp: DateTime.now(),
           ),
         );
@@ -159,12 +210,15 @@ class DialogueService {
 
         // Start generating next reply concurrently with TTS
         nextReplyFuture = _generateReply(
-          _firstCharacter,
-          _firstCharacterMessages,
+          _firstCharacter!,
+          appendSystemMessage(_firstCharacterMessages, firstSystemPrompt),
         );
 
         // Play audio for current message
-        await speakTextWithJS(chatReply.messageContent, "af_heart");
+        await speakTextWithJS(
+          chatReply.messageContent,
+          currentCharacter.voiceProvider.voiceId,
+        );
       }
     }
   }
@@ -177,7 +231,7 @@ class DialogueService {
     return ChatProviderService.getChatCompletion(
       chatProvider: character.chatProvider,
       messages: characterMessages,
-      model: character.chatModelId,
+      model: character.chatProvider.modelId ?? '',
     );
   }
 

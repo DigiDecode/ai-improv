@@ -31,4 +31,9 @@ class ChatWidgetController extends ChangeNotifier {
     // ]);
     notifyListeners();
   }
+
+  void resetChat() {
+    _messages.clear();
+    notifyListeners();
+  }
 }
