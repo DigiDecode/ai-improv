@@ -29,8 +29,9 @@ class ChatProviderService {
 
     if (response.statusCode != 200) {
       throw ApiException(
-        'Failed to fetch models: ${response.statusCode}',
+        'Failed to fetch models: Status Code ${response.statusCode}',
         response.statusCode,
+        response.body,
       );
     }
 
@@ -63,8 +64,9 @@ class ChatProviderService {
 
     if (response.statusCode != 200) {
       throw ApiException(
-        'Chat completion failed: ${response.statusCode}',
+        'Chat completion failed: Status Code ${response.statusCode}.',
         response.statusCode,
+        response.body,
       );
     }
 

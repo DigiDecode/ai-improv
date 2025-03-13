@@ -135,7 +135,7 @@ class _AddChatProviderWidgetState extends State<AddChatProviderWidget>
           alignment: Alignment.bottomRight,
           child: ElevatedButton(
             onPressed: () {
-              _controller.fetchModels();
+              _controller.fetchModels(context);
             },
             child: const Text('Next'),
           ),

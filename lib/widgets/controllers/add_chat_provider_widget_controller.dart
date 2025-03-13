@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../models/chat_provider_model.dart';
 import '../../services/chat_provider_service.dart';
 import '../../model_services/chat_provider_model_service.dart';
+import '../../utils/api_exception.dart';
+import '../../utils/error_utils.dart'; // Import the error utils
 
 class AddChatProviderWidgetController extends ChangeNotifier {
   final TextEditingController providerNameController = TextEditingController();
@@ -47,7 +49,7 @@ class AddChatProviderWidgetController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchModels() async {
+  Future<void> fetchModels(BuildContext context) async {
     if (providerNameController.text.isEmpty || baseUrlController.text.isEmpty) {
       return;
     }
@@ -65,8 +67,14 @@ class AddChatProviderWidgetController extends ChangeNotifier {
       _models = await ChatProviderService.listModels(provider);
       _isFirstPage = false;
     } catch (e) {
-      print('Error fetching models: $e');
-      _models = [];
+      if (e is ApiException) {
+        ErrorUtils.showErrorSnackbar(e, context);
+      } else {
+        ErrorUtils.showErrorSnackbar(
+          ApiException('An unexpected error occurred.', 500, e.toString()),
+          context,
+        );
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
