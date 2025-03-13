@@ -1,8 +1,13 @@
 import 'package:ai_improv/models/character_model.dart';
 import 'package:ai_improv/models/chat_message.dart';
+import 'package:ai_improv/pages/providers/home_state_provider.dart';
 import 'package:ai_improv/services/chat_provider_service.dart';
+import 'package:ai_improv/utils/api_exception.dart';
 import 'package:ai_improv/widgets/controllers/chat_widget_controller.dart';
 import 'dart:js_interop';
+import 'package:flutter/material.dart'; // Import for BuildContext
+import 'package:ai_improv/utils/error_utils.dart';
+import 'package:provider/provider.dart'; // Import for error handling
 
 // Proper JS interop for the speakText function
 @JS('window.speakText')
@@ -30,6 +35,7 @@ class DialogueService {
   final _secondCharacterMessages = List<ChatMessage>.empty(growable: true);
 
   final ChatWidgetController _chatWidgetController;
+  BuildContext? _context; // make context nullable
 
   ChatProviderService chatProviderService = ChatProviderService();
 
@@ -41,7 +47,11 @@ class DialogueService {
     updateSystemPrompts();
   }
 
-  DialogueService(this._chatWidgetController) {}
+  DialogueService(this._chatWidgetController);
+
+  void setContext(BuildContext context) {
+    _context = context;
+  }
 
   String? canStart() {
     if (_firstCharacter == null) {
@@ -94,11 +104,17 @@ class DialogueService {
       _firstCharacterMessages.add(
         ChatMessage(role: ChatRole.system, content: firstSystemPrompt),
       );
+      _firstCharacterMessages.add(
+        ChatMessage(role: ChatRole.user, content: '...'),
+      );
     }
 
     if (_secondCharacterMessages.isEmpty) {
       _secondCharacterMessages.add(
         ChatMessage(role: ChatRole.system, content: secondSystemPrompt),
+      );
+      _secondCharacterMessages.add(
+        ChatMessage(role: ChatRole.user, content: '...'),
       );
     }
   }
@@ -126,9 +142,14 @@ class DialogueService {
     return temp;
   }
 
-  void start() async {
+  Future<void> start() async {
     if (canStart() != null) {
       throw Exception("select characters");
+    }
+
+    if (_context == null) {
+      print("Error: BuildContext is null.  Cannot show snackbar.");
+      return;
     }
 
     _continue = true;
@@ -136,95 +157,106 @@ class DialogueService {
     // Generate initial reply from first character
     _nextToReply ??= _firstCharacter;
 
+    Future<void>? speakFuture;
+
     while (_continue) {
       // Await the reply that's already being generated
 
       final currentCharacter = _nextToReply!;
 
       // Update message lists based on which character just replied
-      if (currentCharacter == _firstCharacter) {
+      try {
         final chatReply = await _generateReply(
-          _firstCharacter!,
-          _firstCharacterMessages,
+          _nextToReply!,
+          _nextToReply == _firstCharacter
+              ? _firstCharacterMessages
+              : _secondCharacterMessages,
         );
 
-        _firstCharacterMessages.add(
-          ChatMessage(
-            role: ChatRole.assistant,
-            content: chatReply.messageContent,
-          ),
-        );
+        if (speakFuture != null) {
+          await speakFuture;
+          speakFuture = null;
+        }
 
-        _secondCharacterMessages.add(
-          ChatMessage(role: ChatRole.user, content: chatReply.messageContent),
-        );
+        if (_nextToReply == _firstCharacter) {
+          _firstCharacterMessages.add(
+            ChatMessage(
+              role: ChatRole.assistant,
+              content: chatReply.messageContent,
+            ),
+          );
 
-        _chatWidgetController.addMessage(
-          ChatWidgetMessage(
-            name: currentCharacter.name,
-            text: chatReply.messageContent,
-            isMe: false,
-            timestamp: DateTime.now(),
-          ),
-        );
+          _secondCharacterMessages.add(
+            ChatMessage(role: ChatRole.user, content: chatReply.messageContent),
+          );
 
-        // Switch to next character
-        _nextToReply = _secondCharacter;
+          _chatWidgetController.addMessage(
+            ChatWidgetMessage(
+              name: currentCharacter.name,
+              text: chatReply.messageContent,
+              isMe: false,
+              timestamp: DateTime.now(),
+            ),
+          );
 
-        // Start generating next reply concurrently with TTS
+          // Switch to next character
+          _nextToReply = _secondCharacter;
+        } else {
+          _firstCharacterMessages.add(
+            ChatMessage(role: ChatRole.user, content: chatReply.messageContent),
+          );
+
+          _secondCharacterMessages.add(
+            ChatMessage(
+              role: ChatRole.assistant,
+              content: chatReply.messageContent,
+            ),
+          );
+
+          _chatWidgetController.addMessage(
+            ChatWidgetMessage(
+              name: currentCharacter.name,
+              text: chatReply.messageContent,
+              isMe: true,
+              timestamp: DateTime.now(),
+            ),
+          );
+
+          // Switch to next character
+          _nextToReply = _firstCharacter;
+        }
 
         // Play audio for current message
         try {
-          await speakTextWithJS(
+          speakFuture = speakTextWithJS(
             chatReply.messageContent,
             currentCharacter.voiceProvider.voiceId,
           );
         } catch (ex) {
           print(ex);
         }
-      } else {
-        final chatReply = await _generateReply(
-          _secondCharacter!,
-          _secondCharacterMessages,
-        );
-
-        _firstCharacterMessages.add(
-          ChatMessage(role: ChatRole.user, content: chatReply.messageContent),
-        );
-
-        _secondCharacterMessages.add(
-          ChatMessage(
-            role: ChatRole.assistant,
-            content: chatReply.messageContent,
-          ),
-        );
-
-        _chatWidgetController.addMessage(
-          ChatWidgetMessage(
-            name: currentCharacter.name,
-            text: chatReply.messageContent,
-            isMe: true,
-            timestamp: DateTime.now(),
-          ),
-        );
-
-        // Switch to next character
-        _nextToReply = _firstCharacter;
-
-        // Start generating next reply concurrently with TTS
-        // nextReplyFuture = _generateReply(
-        //   _firstCharacter!,
-        //   _firstCharacterMessages,
-        // );
-
-        // Play audio for current message
-        try {
-          await speakTextWithJS(
-            chatReply.messageContent,
-            currentCharacter.voiceProvider.voiceId,
+      } catch (e) {
+        if (_context != null) {
+          _continue = false;
+          final homeState = Provider.of<HomeStateProvider>(
+            _context!,
+            listen: false,
           );
-        } catch (ex) {
-          print(ex);
+          homeState.toggleStartStop();
+        }
+
+        if (e is ApiException) {
+          ErrorUtils.showErrorSnackbar(e, _context!);
+        } else {
+          ScaffoldMessenger.of(_context!).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'An unexpected error occurred.',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     }
@@ -235,11 +267,6 @@ class DialogueService {
     CharacterModel character,
     List<ChatMessage> characterMessages,
   ) async {
-    // characterMessages.where((cm) => cm.role == ChatRole.system).forEach((cm) {
-    //   print("${character.name} ${cm.content}");
-    //   ;
-    // });
-
     return ChatProviderService.getChatCompletion(
       chatProvider: character.chatProvider,
       messages: characterMessages,

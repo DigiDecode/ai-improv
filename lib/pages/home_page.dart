@@ -27,6 +27,7 @@ class _HomePageState extends State<HomePage> {
     // Initialize the controller with the scenario from the provider
     final homeState = Provider.of<HomeStateProvider>(context, listen: false);
     _scenarioController.text = homeState.scenarioText;
+    homeState.controller.initialize(context);
   }
 
   @override

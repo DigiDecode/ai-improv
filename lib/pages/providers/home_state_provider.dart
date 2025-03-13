@@ -10,7 +10,7 @@ class HomeStateProvider extends ChangeNotifier {
   String scenarioText = '';
 
   HomeStateProvider() {
-    controller.initializeVoice();
+    // controller.initializeVoice();
   }
 
   void setFirstCharacter(CharacterModel character) {

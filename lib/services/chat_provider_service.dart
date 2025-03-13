@@ -24,7 +24,12 @@ class ChatProviderService {
   static Future<List<Model>> listModels(ChatProviderModel model) async {
     final response = await http.get(
       Uri.parse('${model.baseUrl}$_modelsPath'),
-      headers: {..._headers, 'Authorization': 'Bearer ${model.apiKey}'},
+      headers: {
+        ..._headers,
+        'Authorization': 'Bearer ${model.apiKey}',
+        'X-Title': 'AI Improv',
+        'HTTP-Referer': 'https://github.com/DigiDecode/ai-improv',
+      },
     );
 
     if (response.statusCode != 200) {
@@ -49,32 +54,39 @@ class ChatProviderService {
     double temperature = 0.6,
     int maxTokens = 2000,
   }) async {
-    final payload = jsonEncode({
-      'model': model,
-      'messages': messages.map((msg) => msg.toJson()).toList(),
-      'temperature': temperature,
-      'max_tokens': maxTokens,
-    });
+    try {
+      final payload = jsonEncode({
+        'model': model,
+        'messages': messages.map((msg) => msg.toJson()).toList(),
+        'temperature': temperature,
+        'max_tokens': maxTokens,
+      });
 
-    final response = await http.post(
-      Uri.parse('${chatProvider.baseUrl}$_chatCompletionPath'),
-      headers: {..._headers, 'Authorization': 'Bearer ${chatProvider.apiKey}'},
-      body: payload,
-    );
-
-    if (response.statusCode != 200) {
-      throw ApiException(
-        'Chat completion failed: Status Code ${response.statusCode}.',
-        response.statusCode,
-        response.body,
+      final response = await http.post(
+        Uri.parse('${chatProvider.baseUrl}$_chatCompletionPath'),
+        headers: {
+          ..._headers,
+          'Authorization': 'Bearer ${chatProvider.apiKey}',
+        },
+        body: payload,
       );
+
+      if (response.statusCode != 200) {
+        throw ApiException(
+          'Chat completion failed: Status Code ${response.statusCode}.',
+          response.statusCode,
+          response.body,
+        );
+      }
+
+      // Ensure proper UTF-8 decoding of the response body
+      final decodedBody = utf8.decode(response.bodyBytes);
+      print(decodedBody);
+
+      return ChatCompletion.fromJson(jsonDecode(decodedBody));
+    } catch (ex) {
+      throw ApiException("$ex", -1);
     }
-
-    // Ensure proper UTF-8 decoding of the response body
-    final decodedBody = utf8.decode(response.bodyBytes);
-    print(decodedBody);
-
-    return ChatCompletion.fromJson(jsonDecode(decodedBody));
   }
 }
 
