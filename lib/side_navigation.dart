@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:js_interop';
+
+@JS('window.open')
+external JSAny openUrl(String url, String target);
 
 // Make this a global variable to persist across page changes
 bool _isNavigationExpanded = false;
@@ -40,6 +44,15 @@ class _SideNavigationState extends State<SideNavigation> {
           ),
         ),
         leadingWidth: _isNavigationExpanded ? 200 : 55, // Match nav width
+        actions: [
+          // New "How it works?" button
+          TextButton(
+            onPressed: () {
+              openUrl('https://youtu.be/buXTk-90NoI', '_blank');
+            },
+            child: const Text('How it works?'),
+          ),
+        ],
       ),
       body: Row(
         children: [
