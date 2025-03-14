@@ -70,9 +70,6 @@ class DialogueService {
   }
 
   void updateSystemPrompts() {
-    // if (canStart() == null) {
-    //   return;
-    // }
     firstSystemPrompt =
         'Assistant your name is ${_firstCharacter?.name}. \n'
         'Below is a bit more about you:\n'
@@ -101,20 +98,34 @@ class DialogueService {
     print(secondSystemPrompt);
 
     if (_firstCharacterMessages.isEmpty) {
+      // First time initialization
       _firstCharacterMessages.add(
         ChatMessage(role: ChatRole.system, content: firstSystemPrompt),
       );
       _firstCharacterMessages.add(
         ChatMessage(role: ChatRole.user, content: '...'),
       );
+    } else {
+      // Update existing system prompt
+      _firstCharacterMessages[0] = ChatMessage(
+        role: ChatRole.system,
+        content: firstSystemPrompt,
+      );
     }
 
     if (_secondCharacterMessages.isEmpty) {
+      // First time initialization
       _secondCharacterMessages.add(
         ChatMessage(role: ChatRole.system, content: secondSystemPrompt),
       );
       _secondCharacterMessages.add(
         ChatMessage(role: ChatRole.user, content: '...'),
+      );
+    } else {
+      // Update existing system prompt
+      _secondCharacterMessages[0] = ChatMessage(
+        role: ChatRole.system,
+        content: secondSystemPrompt,
       );
     }
   }

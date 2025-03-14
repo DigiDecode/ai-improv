@@ -24,21 +24,82 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Initialize the controller with the scenario from the provider
+    final homeState = Provider.of<HomeStateProvider>(context, listen: false);
+    homeState.controller.initialize(context);
+  }
+
+  // Show dialog for scenario editing
+  // lib/pages/home_page.dart
+  void _showScenarioEditDialog() {
     final homeState = Provider.of<HomeStateProvider>(context, listen: false);
     _scenarioController.text = homeState.scenarioText;
-    homeState.controller.initialize(context);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 40,
+            vertical: 24,
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.7,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Edit Scenario',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  child: TextField(
+                    controller: _scenarioController,
+                    maxLines: null,
+                    expands: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter scenario details here...',
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Color.fromARGB(10, 255, 255, 255),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () {
+                        homeState.setScenario(_scenarioController.text);
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Apply'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     // Get the persisted state details from the provider.
     final homeState = Provider.of<HomeStateProvider>(context);
-
-    // Keep the text controller in sync with the provider
-    if (_scenarioController.text != homeState.scenarioText) {
-      _scenarioController.text = homeState.scenarioText;
-    }
 
     return Column(
       children: [
@@ -149,35 +210,38 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Scenario Description',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Scenario Description',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: _showScenarioEditDialog,
+                            child: const Text('Change Scenario'),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Expanded(
-                        child: TextField(
-                          controller: _scenarioController,
-                          maxLines: null,
-                          expands: true,
-                          decoration: const InputDecoration(
-                            hintText: 'Enter scenario details here...',
-                            // border: OutlineInputBorder(),
-                            filled: true,
-                            fillColor: Color.fromARGB(10, 255, 255, 255),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(10, 255, 255, 255),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            homeState.setScenario(_scenarioController.text);
-                          },
-                          child: const Text('Apply Scenario'),
+                          child: SingleChildScrollView(
+                            child: Text(
+                              homeState.scenarioText.isEmpty
+                                  ? 'No scenario set. Click "Change Scenario" to add one.'
+                                  : homeState.scenarioText,
+                            ),
+                          ),
                         ),
                       ),
                     ],
