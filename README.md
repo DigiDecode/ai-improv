@@ -1,16 +1,5 @@
-# ai_improv
+# Introduction
+Introduction video of an AI app called “AI Improv” that can simulate AI conversions based on defined characters and given situation, ever wonder how a conversion might evolve; now you can simulate it using AI Improv. The results can be fun & surprising
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# How it works
+Watch https://www.youtube.com/watch?v=buXTk-90NoI
